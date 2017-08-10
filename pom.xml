@@ -88,13 +88,6 @@
         <module>features/tenant-mgt-common</module>
     </modules>
 
-    <scm>
-        <url>https://github.com/wso2/carbon-commons.git</url>
-        <developerConnection>scm:git:https://github.com/wso2/carbon-commons.git</developerConnection>
-        <connection>scm:git:https://github.com/wso2/carbon-commons.git</connection>
-        <tag>v4.5.10</tag>
-    </scm>
-
     <dependencyManagement>
         <dependencies>
             <!-- Carbon Kernel Dependencies-->
@@ -1555,18 +1548,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <preparationGoals>clean install</preparationGoals>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -1730,9 +1711,6 @@
         <jgit.version>2.3.1.wso2v2</jgit.version>
         <jsch.version>0.1.49.wso2v1</jsch.version>
         <gitblit.version>1.2.0.wso2v1</gitblit.version>
-
-        <!-- for maven release process -->
-        <project.scm.id>my-scm-server</project.scm.id>
 
         <version.javax.servlet>3.0.0.v201112011016</version.javax.servlet>
 
