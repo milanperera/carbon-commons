@@ -48,6 +48,9 @@ public class RegistryManager {
 
     private static Registry registry;
 
+    // OAEP Fix migration: This is used to track requirement of migration for encrypted date after configuring transform
+    private boolean isSyslogPasswordMigrationRequired = false;
+
     public static void setRegistry(Registry registryParam) {
         registry = registryParam;
     }
@@ -174,10 +177,19 @@ public class RegistryManager {
                 password.getBytes());
     }
 
-    private String decriptPassword(String encriptedPassword)
+    private String decryptPassword(String encryptedPassword)
             throws CryptoException, IOException {
-        return new String(CryptoUtil.getDefaultCryptoUtil()
-                .base64DecodeAndDecrypt(encriptedPassword));
+        CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
+        if (System.getProperty(CryptoUtil.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
+            isSyslogPasswordMigrationRequired = !cryptoUtil.base64DecodeAndIsSelfContainedCipherText(encryptedPassword);
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Encrypted data migration requirement detected: Syslog password registry property located at : "
+                                + LoggingConstants.SYSLOG);
+            }
+        }
+        return new String(cryptoUtil.base64DecodeAndDecrypt(encryptedPassword));
+
     }
 
 
@@ -415,8 +427,17 @@ public class RegistryManager {
                         .getProperty(LoggingConstants.SyslogProperties.REALM);
                 userName = syslogConfigResource
                         .getProperty(LoggingConstants.SyslogProperties.USER_NAME);
-                password = decriptPassword(syslogConfigResource
+                password = decryptPassword(syslogConfigResource
                         .getProperty(LoggingConstants.SyslogProperties.PASSWORD));
+
+                // OAEP Migration: Check whether required to migrate
+                if (isSyslogPasswordMigrationRequired) {
+                    log.info("Migration Start: syslog password registry property at :" + LoggingConstants.SYSLOG);
+                    updateSyslogConfig(url, port, realm, userName, password);
+                    log.info("Migration Completed: syslog password registry property at " + LoggingConstants.SYSLOG);
+                    isSyslogPasswordMigrationRequired = false;
+                }
+
             } else { // read syslog properties from the syslog-config.xml
                 SyslogConfiguration config = SyslogConfigManager
                         .loadSyslogConfiguration();
